@@ -7,6 +7,8 @@ namespace SG
 {
     [DisallowMultipleComponent]
     [AddComponentMenu("")]
+
+	// 实际上是用来管理多个Pool的
     public class ResourceManager : MonoBehaviour
     {
         //obj pool
@@ -14,6 +16,7 @@ namespace SG
 
         private static ResourceManager mInstance = null;
 
+		// 创建GameObject，ResourceManager，并挂载脚本
         public static ResourceManager Instance
         {
             get
@@ -37,20 +40,28 @@ namespace SG
                 return mInstance;
             }
         }
+
+		// poolName：池子名称，同时也是要缓存的go的名称
+		// 新建的pool，会挂载在自己的下面
         public void InitPool(string poolName, int size, PoolInflationType type = PoolInflationType.DOUBLE)
         {
-            if (poolDict.ContainsKey(poolName))
-            {
+            if (poolDict.ContainsKey(poolName)) {
                 return;
             }
-            else
-            {
+            else {
+				// 加载要缓存的go模板
                 GameObject pb = Resources.Load<GameObject>(poolName);
                 if (pb == null)
                 {
                     Debug.LogError("[ResourceManager] Invalide prefab name for pooling :" + poolName);
                     return;
                 }
+				// 参数顺序；
+				// poolName
+				// poolObjectPrefab
+				// rootPoolObj
+				// initialCount
+				// type
                 poolDict[poolName] = new Pool(poolName, pb, gameObject, size, type);
             }
         }
@@ -61,6 +72,8 @@ namespace SG
         /// </summary>
         /// <param name="poolName"></param>
         /// <returns></returns>
+
+		// 从pool中取go
         public GameObject GetObjectFromPool(string poolName, bool autoActive = true, int autoCreate = 0)
         {
             GameObject result = null;
@@ -95,6 +108,7 @@ namespace SG
         /// Return obj to the pool
         /// </summary>
         /// <param name="go"></param>
+		// 将go放回到pool中
         public void ReturnObjectToPool(GameObject go)
         {
             PoolObject po = go.GetComponent<PoolObject>();
@@ -124,6 +138,9 @@ namespace SG
         /// Return obj to the pool
         /// </summary>
         /// <param name="t"></param>
+
+		// 同ReturnObjectToPool，
+		// 区分了，Transform SetParent onEnable的情况
         public void ReturnTransformToPool(Transform t)
         {
             if (t == null)
